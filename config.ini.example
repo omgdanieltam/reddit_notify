@@ -1,0 +1,16 @@
+# Subreddit to parse
+subreddit = rabbits
+
+# Interval (in minutes) to check subreddit
+interval = 5
+
+# Keyword to search for within title and text
+keyword = cute
+
+# SMTP information
+smtp_server = localhost
+smtp_port = 25
+smtp_username = test
+smtp_password = test
+smtp_to = test@test.com
+smtp_from = test@test.com
