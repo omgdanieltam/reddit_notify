@@ -1,3 +1,4 @@
+[app]
 # Subreddit to parse
 subreddit = rabbits
 
@@ -8,6 +9,7 @@ interval = 5
 keyword = cute
 
 # SMTP information
+[smtp]
 smtp_server = localhost
 smtp_port = 25
 smtp_username = test
