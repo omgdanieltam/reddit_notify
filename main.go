@@ -90,7 +90,7 @@ func main() {
 
 func loop() {
 	// Setup
-	subreddit_rss := "https://www.reddit.com/r/" + subreddit + "/.json"
+	subreddit_rss := "https://www.reddit.com/r/" + subreddit + "/new/.json"
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", subreddit_rss, nil)
@@ -123,7 +123,6 @@ func loop() {
 			index := strconv.Itoa(i)
 			title, _ := jsonparser.GetString(body, "data", "children", "["+index+"]", "data", "title")
 			text, _ := jsonparser.GetString(body, "data", "children", "["+index+"]", "data", "selftext")
-			url, _ := jsonparser.GetString(body, "data", "children", "["+index+"]", "data", "url")
 			alert := false
 
 			// Check if keyword matches
@@ -135,7 +134,9 @@ func loop() {
 
 			// Send alert if keyword found
 			if alert {
-				sendAlert(title, text, url)
+				url, _ := jsonparser.GetString(body, "data", "children", "["+index+"]", "data", "url")
+				timestamp, _ := jsonparser.GetFloat(body, "data", "children", "["+index+"]", "data", "created_utc")
+				validateAlert(title, text, url, int64(timestamp))
 			}
 
 		}
@@ -150,6 +151,19 @@ func quitConfigParseError(msg string) {
 	os.Exit(1)
 }
 
+// Validate the alert to ensure that it needs to be sent
+func validateAlert(title string, text string, url string, timestamp int64) {
+	// Get timestamp of interval period
+	currentTs := time.Now()
+	intervalTs := currentTs.Add(-time.Minute * time.Duration(interval))
+
+	// Only send alert if it's newer than interval time period
+	if timestamp > intervalTs.Unix() {
+		sendAlert(title, text, url)
+	}
+}
+
+// Send the alert out
 func sendAlert(title string, text string, url string) {
 	// Setup
 	m := gomail.NewMessage()
