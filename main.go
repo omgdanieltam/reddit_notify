@@ -31,6 +31,7 @@ func main() {
 	// Parse and check config values
 	if cfg.Section("app").HasKey("subreddit") {
 		subreddit = cfg.Section("app").Key("subreddit").String()
+		printConfig("subreddit", subreddit)
 	} else {
 		quitConfigParseError("Missing 'subreddit'")
 	}
@@ -38,18 +39,23 @@ func main() {
 	if cfg.Section("app").HasKey("interval") {
 		// default to 5 minutes
 		interval = cfg.Section("app").Key("interval").MustInt(5)
+		printConfig("interval", strconv.Itoa(interval))
 	} else {
 		quitConfigParseError("Missing 'interval'")
 	}
 
 	if cfg.Section("app").HasKey("keyword") {
 		keywords = cfg.Section("app").Key("keyword").ValueWithShadows()
+		for _, keys := range keywords {
+			printConfig("keyword", keys)
+		}
 	} else {
 		quitConfigParseError("Missing 'keyword'")
 	}
 
 	if cfg.Section("smtp").HasKey("smtp_server") {
 		smtpServer = cfg.Section("smtp").Key("smtp_server").String()
+		printConfig("smtp_server", smtpServer)
 	} else {
 		quitConfigParseError("Missing 'smtp_server'")
 	}
@@ -57,30 +63,35 @@ func main() {
 	if cfg.Section("smtp").HasKey("smtp_port") {
 		// default to port 25
 		smtpPort = cfg.Section("smtp").Key("smtp_port").MustInt(25)
+		printConfig("smtp_port", strconv.Itoa(smtpPort))
 	} else {
 		quitConfigParseError("Missing 'smtp_port'")
 	}
 
 	if cfg.Section("smtp").HasKey("smtp_username") {
 		smtpUsername = cfg.Section("smtp").Key("smtp_username").String()
+		printConfig("smtp_username", smtpUsername)
 	} else {
 		quitConfigParseError("Missing 'smtp_username'")
 	}
 
 	if cfg.Section("smtp").HasKey("smtp_password") {
 		smtpPassword = cfg.Section("smtp").Key("smtp_password").String()
+		printConfig("smtp_password", "<redacted>")
 	} else {
 		quitConfigParseError("Missing 'smtp_password'")
 	}
 
 	if cfg.Section("smtp").HasKey("smtp_to") {
 		smtpTo = cfg.Section("smtp").Key("smtp_to").String()
+		printConfig("smtp_to", smtpTo)
 	} else {
 		quitConfigParseError("Missing 'smtp_to'")
 	}
 
 	if cfg.Section("smtp").HasKey("smtp_from") {
 		smtpFrom = cfg.Section("smtp").Key("smtp_from").String()
+		printConfig("smtp_from", smtpFrom)
 	} else {
 		quitConfigParseError("Missing 'smtp_from'")
 	}
@@ -146,6 +157,10 @@ func loop() {
 		// Sleep for interval time
 		time.Sleep(time.Duration(interval) * time.Minute)
 	}
+}
+
+func printConfig(key string, value string) {
+	fmt.Println("Loaded "+key+": ", value)
 }
 
 func quitConfigParseError(msg string) {
