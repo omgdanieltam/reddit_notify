@@ -15,13 +15,14 @@ import (
 )
 
 var (
-	subreddit, keyword, smtpServer, smtpTo, smtpFrom, smtpUsername, smtpPassword string
-	interval, smtpPort                                                           int
+	subreddit, smtpServer, smtpTo, smtpFrom, smtpUsername, smtpPassword string
+	keywords                                                            []string
+	interval, smtpPort                                                  int
 )
 
 func main() {
 	// Load config
-	cfg, err := ini.Load("config.ini")
+	cfg, err := ini.ShadowLoad("config.ini")
 
 	if err != nil {
 		quitConfigParseError(err.Error())
@@ -42,7 +43,7 @@ func main() {
 	}
 
 	if cfg.Section("app").HasKey("keyword") {
-		keyword = cfg.Section("app").Key("keyword").String()
+		keywords = cfg.Section("app").Key("keyword").ValueWithShadows()
 	} else {
 		quitConfigParseError("Missing 'keyword'")
 	}
@@ -123,22 +124,23 @@ func loop() {
 			index := strconv.Itoa(i)
 			title, _ := jsonparser.GetString(body, "data", "children", "["+index+"]", "data", "title")
 			text, _ := jsonparser.GetString(body, "data", "children", "["+index+"]", "data", "selftext")
-			alert := false
 
-			// Check if keyword matches
-			if strings.Contains(strings.ToLower(title), keyword) {
-				alert = true
-			} else if strings.Contains(strings.ToLower(text), keyword) {
-				alert = true
+			for _, keys := range keywords {
+				// Check for keywords
+				alert := false
+				if compareToKeywords(strings.ToLower(title), strings.ToLower(keys)) {
+					alert = true
+				} else if compareToKeywords(strings.ToLower(text), strings.ToLower(keys)) {
+					alert = true
+				}
+
+				// Send alert if keyword found
+				if alert {
+					url, _ := jsonparser.GetString(body, "data", "children", "["+index+"]", "data", "url")
+					timestamp, _ := jsonparser.GetFloat(body, "data", "children", "["+index+"]", "data", "created_utc")
+					validateAlert(title, text, url, int64(timestamp), keys)
+				}
 			}
-
-			// Send alert if keyword found
-			if alert {
-				url, _ := jsonparser.GetString(body, "data", "children", "["+index+"]", "data", "url")
-				timestamp, _ := jsonparser.GetFloat(body, "data", "children", "["+index+"]", "data", "created_utc")
-				validateAlert(title, text, url, int64(timestamp))
-			}
-
 		}
 
 		// Sleep for interval time
@@ -151,20 +153,37 @@ func quitConfigParseError(msg string) {
 	os.Exit(1)
 }
 
+func compareToKeywords(text string, keyword string) bool {
+	// Split keywords on commas
+	keys := strings.Split(keyword, ",")
+	found := false
+
+	// Check to ensure it contains ALL the keywords
+	for _, key := range keys {
+		if strings.Contains(text, strings.TrimSpace(key)) {
+			found = true
+		} else {
+			found = false
+		}
+	}
+
+	return found
+}
+
 // Validate the alert to ensure that it needs to be sent
-func validateAlert(title string, text string, url string, timestamp int64) {
+func validateAlert(title string, text string, url string, timestamp int64, keyword string) {
 	// Get timestamp of interval period
 	currentTs := time.Now()
 	intervalTs := currentTs.Add(-time.Minute * time.Duration(interval))
 
 	// Only send alert if it's newer than interval time period
 	if timestamp > intervalTs.Unix() {
-		sendAlert(title, text, url)
+		sendAlert(title, text, url, keyword)
 	}
 }
 
 // Send the alert out
-func sendAlert(title string, text string, url string) {
+func sendAlert(title string, text string, url string, keyword string) {
 	// Setup
 	m := gomail.NewMessage()
 	m.SetHeader("From", smtpFrom)

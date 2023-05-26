@@ -8,6 +8,9 @@ interval = 5
 # Keyword to search for within title and text
 keyword = cute
 
+# Addional keyword search, split by commas
+keyword = pretty, bun
+
 # SMTP information
 [smtp]
 smtp_server = localhost
