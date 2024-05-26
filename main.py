@@ -146,7 +146,7 @@ def check_reddit(config):
                             # Send alert
                             send_alert(config, title, text, url, timestamp, keyword)
         
-        time.sleep(config.get('interval'))
+        time.sleep(config.get('interval') * 60)
 
 # Send alert out
 def send_alert(config, title, text, url, timestamp, keyword):
