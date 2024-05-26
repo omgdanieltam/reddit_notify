@@ -12,7 +12,7 @@ from email.mime.multipart import MIMEMultipart
 # Arguments parse
 parser = argparse.ArgumentParser(description='Reddit notify on keywords')
 parser.add_argument("--config", type=str, help="name of config file", 
-                    default='config.ini.example')
+                    default='config.ini')
 args = parser.parse_args()
 
 # Config parse
