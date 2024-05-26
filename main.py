@@ -6,13 +6,17 @@ import requests
 import json
 import datetime
 import smtplib
+import os
+import crcmod
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # Arguments parse
 parser = argparse.ArgumentParser(description='Reddit notify on keywords')
-parser.add_argument("--config", type=str, help="name of config file", 
+parser.add_argument("--config", type=str, help="location of config file", 
                     default='config.ini')
+parser.add_argument("--cache", type=str, help="location of cache file", 
+                    default='cache.txt')
 args = parser.parse_args()
 
 # Config parse
@@ -24,6 +28,8 @@ http_headers = {
 }
 
 # Keep track of sent
+crc32_func = crcmod.predefined.mkPredefinedCrcFun('crc-32')
+cache_file = ""
 sent = []
 
 # Etc
@@ -42,7 +48,8 @@ def print_and_flush(msg):
 # Check if message was sent previously
 def sent_previously(url):
     # Simple hash to keep track of urls
-    hashed_url = hash(url)
+    encoded = url.encode('utf-8')
+    hashed_url = str(crc32_func(encoded))
 
     # If not sent previously, add it to the sent list
     if hashed_url not in sent:
@@ -51,6 +58,10 @@ def sent_previously(url):
         # Prune sent list
         while len(sent) > 100:
             sent.pop()
+
+        # Write cache to disk
+        with open(cache_file, "w") as file:
+            file.write(', '.join(str(value) for value in sent))
 
         return False
     else:
@@ -128,6 +139,26 @@ def get_config(filename):
         config_error("Missing 'smtp_from'")
 
     return config
+
+# Get/Setup cache file
+def setup_cache(filename):
+    global cache_file
+    cache_file = filename
+
+    # If cache exists, read it and update sent
+    if os.path.exists(cache_file):
+        with open(cache_file, "r") as file:
+            content = file.read()
+            global sent
+            sent = [token.strip() for token in content.split(',')]
+
+            # Remove random empty string
+            sent = [item for item in sent if item != ""]
+
+        print_and_flush(f'Cache file found at: {filename}')
+    else:
+        with open(cache_file, "w") as file:
+            pass
 
 # Constant loop to check subreddit
 def check_reddit(config):
@@ -208,8 +239,12 @@ def send_alert(config, title, text, url, timestamp, keyword):
 
 if __name__ == '__main__':
 
+    # Setup config
     config = get_config(args.config)
-
     print_and_flush(f'Current config file: {config}')
 
+    # Setup cache
+    setup_cache(args.cache)
+
+    # Main loop, check reddit
     check_reddit(config)
