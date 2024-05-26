@@ -29,6 +29,7 @@ nl = '\n'
 # Config error message
 def config_error(msg):
     print(f'Error parsing config file: {msg}')
+    sys.stdout.flush()
     sys.exit(1)
 
 # Read config file
@@ -44,6 +45,7 @@ def get_config(filename):
         
     except configparser.Error as e:
         print(f'Error reading config file {e}')
+        sys.stdout.flush()
         sys.exit(1)
 
     # Parse config file
@@ -171,11 +173,13 @@ def send_alert(config, title, text, url, timestamp, keyword):
             server.sendmail(smtp_from, smtp_to, text)
     except Exception as e:
         print(f'SMTP Send Error: {e}')
+        sys.stdout.flush()
 
 if __name__ == '__main__':
 
     config = get_config(args.config)
 
     print(f'Current config file: {config}')
+    sys.stdout.flush()
 
     check_reddit(config)
