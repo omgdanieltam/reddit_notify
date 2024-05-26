@@ -115,6 +115,10 @@ def check_reddit(config):
 
     while(True):
         for subreddit in subreddits:
+            # Debug message
+            current_time = datetime.datetime.now()
+            print_and_flush(f'Starting search at: {current_time.strftime("%Y-%m-%d %H:%M:%S")}')
+            
             resp = requests.get(f'https://www.reddit.com/r/{subreddit}/new.json', headers=http_headers)
 
             if resp.status_code == 200:
@@ -149,13 +153,16 @@ def send_alert(config, title, text, url, timestamp, keyword):
     # Setup
     smtp_from = config.get('smtp_from')
     smtp_to = config.get('smtp_to')
+    time_format = datetime.datetime.fromtimestamp(timestamp)
+
+    # Debug message
+    print_and_flush(f'Found match: {title} at {time_format.strftime("%Y-%m-%d %H:%M:%S")}')
 
     # Setup message
     message = MIMEMultipart()
     message["From"] = smtp_from
     message["To"] = smtp_to
     message["Subject"] = f'Reddit Notify: Found Match ({title})'
-    time_format = datetime.datetime.fromtimestamp(timestamp)
     body = f'Keyword: {keyword}{nl}{nl}{nl}\
         {title}{nl}{nl}{nl}\
         {text}{nl}{nl}{nl}\
