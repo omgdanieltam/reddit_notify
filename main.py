@@ -55,7 +55,7 @@ def get_config(filename):
 
     if config_parser.has_option('app', 'interval') and \
             len(config_parser.get('app', 'interval').strip()) > 0:
-        config['interval'] = config_parser.get('app', 'interval').strip()
+        config['interval'] = int(config_parser.get('app', 'interval'))
     else:
         config_error("Missing 'interval'")
 
@@ -74,7 +74,7 @@ def get_config(filename):
 
     if config_parser.has_option('smtp', 'smtp_port') and \
             len(config_parser.get('smtp', 'smtp_port').strip()) > 0:
-        config['smtp_port'] = config_parser.get('smtp', 'smtp_port').strip()
+        config['smtp_port'] = int(config_parser.get('smtp', 'smtp_port'))
     else:
         config_error("Missing 'smtp_port'")
 
