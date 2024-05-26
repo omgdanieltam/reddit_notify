@@ -1,5 +1,6 @@
 certifi==2024.2.2
 charset-normalizer==3.3.2
+crcmod==1.7
 idna==3.7
 requests==2.32.2
 setuptools==69.0.2
