@@ -23,6 +23,9 @@ http_headers = {
     'User-Agent': 'Python_Reddit_Notif_Dtam/1.0'
 }
 
+# Keep track of sent
+sent = []
+
 # Etc
 nl = '\n'
 
@@ -31,9 +34,27 @@ def config_error(msg):
     print_and_flush(f'Error parsing config file: {msg}')
     sys.exit(1)
 
+# Print and flush stdout
 def print_and_flush(msg):
     print(msg)
     sys.stdout.flush()
+
+# Check if message was sent previously
+def sent_previously(url):
+    # Simple hash to keep track of urls
+    hashed_url = hash(url)
+
+    # If not sent previously, add it to the sent list
+    if hashed_url not in sent:
+        sent.append(hashed_url)
+
+        # Prune sent list
+        while len(sent) > 100:
+            sent.pop()
+
+        return False
+    else:
+        return True
 
 # Read config file
 def get_config(filename):
@@ -150,6 +171,10 @@ def check_reddit(config):
 
 # Send alert out
 def send_alert(config, title, text, url, timestamp, keyword):
+    # Check if sent previously
+    if sent_previously(url):
+        return
+        
     # Setup
     smtp_from = config.get('smtp_from')
     smtp_to = config.get('smtp_to')
