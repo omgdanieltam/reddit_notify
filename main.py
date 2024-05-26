@@ -166,7 +166,7 @@ def send_alert(config, title, text, url, timestamp, keyword):
     body = f'Keyword: {keyword}{nl}{nl}{nl}\
         {title}{nl}{nl}{nl}\
         {text}{nl}{nl}{nl}\
-        URL: {url}{nl}\
+        URL: https://www.reddit.com{url}{nl}\
         Time: {time_format.strftime("%Y-%m-%d %H:%M:%S")}'
     
     message.attach(MIMEText(body, "plain"))
