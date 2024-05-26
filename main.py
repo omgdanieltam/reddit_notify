@@ -175,8 +175,6 @@ def send_alert(config, title, text, url, timestamp, keyword):
     try:
         with smtplib.SMTP(config.get('smtp_server'),
                         config.get('smtp_port')) as server:
-            server.login(config.get('smtp_username'),
-                        config.get('smtp_password'))
             text = message.as_string()
 
             server.sendmail(smtp_from, smtp_to, text)
