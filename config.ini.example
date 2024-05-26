@@ -1,15 +1,12 @@
 [app]
 # Subreddit to parse
-subreddit = rabbits
+subreddit = mechmarket
 
 # Interval (in minutes) to check subreddit
 interval = 5
 
-# Keyword to search for within title and text
-keyword = cute
-
-# Addional keyword search, split by commas
-keyword = pretty, bun
+# Addional keyword search
+keyword = holy pandas
 
 # SMTP information
 [smtp]
