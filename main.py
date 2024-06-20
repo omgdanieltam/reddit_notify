@@ -57,7 +57,7 @@ def sent_previously(url):
 
         # Prune sent list
         while len(sent) > 100:
-            sent.pop()
+            sent.pop(0)
 
         # Write cache to disk
         with open(cache_file, "w") as file:
